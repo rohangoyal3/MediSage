@@ -1,0 +1,89 @@
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import JSONResponse
+import io
+import pytesseract
+import easyocr
+import sqlite3
+from fuzzywuzzy import process
+from PIL import Image
+
+app = FastAPI()
+
+# Initialize OCR reader
+reader = easyocr.Reader(['en'])
+
+# Connect to SQLite database (change to PostgreSQL if needed)
+DB_PATH = "medicine_db.sqlite"
+def get_db_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+# Extract text using OCR
+def extract_text(image):
+    text = pytesseract.image_to_string(image)
+    return text.strip()
+
+# Fuzzy match medicine name from the database
+def find_medicine(medicine_name):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM medicines")
+    medicine_list = [row[0] for row in cursor.fetchall()]
+    conn.close()
+    
+    match, score = process.extractOne(medicine_name, medicine_list)
+    return match if score > 80 else None
+
+# API to process prescription image and return medicine details
+@app.post("/process_prescription/")
+async def process_prescription(file: UploadFile = File(...)):
+    """
+    How It Works:
+    1. Upload Prescription - Users take a photo or upload an image.
+    2. Extract & Display - OCR decodes text and fetches medicine details.
+    3. Suggest Alternatives - If unavailable, safe substitutes are provided.
+    4. Empower Users - Ensures accuracy and medication safety.
+    """
+
+    # Step 1: Upload Prescription
+    image = Image.open(io.BytesIO(await file.read()))
+    
+    # Step 2: Extract & Display
+    extracted_text = extract_text(image)
+    if not extracted_text:
+        raise HTTPException(status_code=400, detail="No text detected in the image")
+    
+    medicines = extracted_text.split('\n')
+    response_data = []
+    
+    for med in medicines:
+        matched_med = find_medicine(med)
+        if matched_med:
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM medicines WHERE name = ?", (matched_med,))
+            med_details = cursor.fetchone()
+            conn.close()
+            
+            if med_details:
+                response_data.append({
+                    "name": med_details["name"],
+                    "price": med_details["price"],
+                    "manufacturer": med_details["manufacturer"],
+                    "type": med_details["type"],
+                    "composition": med_details["composition"],
+                    "alternatives": med_details["alternatives"]  # Step 3: Suggest Alternatives
+                })
+
+    # Step 4: Empower Users - Return JSON response with extracted details
+    return JSONResponse({
+        "how_it_works": {
+            "step_1": "Upload Prescription - Users take a photo or upload an image.",
+            "step_2": "Extract & Display - OCR decodes text and fetches medicine details.",
+            "step_3": "Suggest Alternatives - If unavailable, safe substitutes are provided.",
+            "step_4": "Empower Users - Ensures accuracy and medication safety."
+        },
+        "extracted_text": extracted_text,
+        "medicines": response_data
+    })
