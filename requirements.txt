@@ -1,0 +1,8 @@
+opencv-python
+pytesseract
+flask
+fastapi
+torch
+transformers
+numpy
+pandas
