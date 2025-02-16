@@ -4,9 +4,12 @@ import numpy as np
 from PIL import Image
 import io
 import re
+import absl.logging
+
+
 
 # Configure Gemini API
-API_KEY = "AIzaSyAAoh22e0DDMTLw1q3J8DxHEPCUcstAplQ"
+API_KEY = "AIzaSyB1VcqlqkleYVuD0QVNb6KxORUgGZImTHs"
 genai.configure(api_key=API_KEY)
 
 
@@ -50,3 +53,4 @@ def extract_text_from_image(image_path):
 # Function to process uploaded image
 def process_uploaded_image(file_path):
     return extract_text_from_image(file_path)
+
