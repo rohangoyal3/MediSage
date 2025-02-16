@@ -46,3 +46,7 @@ def extract_text_from_image(image_path):
     )
 
     return re.findall(r'\b\w+\b', response.text) if response else []
+
+# Function to process uploaded image
+def process_uploaded_image(file_path):
+    return extract_text_from_image(file_path)

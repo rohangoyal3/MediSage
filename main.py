@@ -1,12 +1,11 @@
 from fastapi import FastAPI, File, UploadFile
 import shutil
 import os
+from scripts.ocr import process_uploaded_image
 
 app = FastAPI()
 
-UPLOAD_DIR = "uploads/"
-
-# Ensure the upload directory exists
+UPLOAD_DIR = "data/uploads/"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @app.post("/upload-prescription/")
@@ -17,4 +16,7 @@ async def upload_prescription(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    return {"message": "File uploaded successfully", "filename": file.filename, "file_path": file_path}
+    # Process the image using OCR and extract text
+    extracted_text = process_uploaded_image(file_path)
+
+    return {"message": "File processed successfully", "filename": file.filename, "extracted_text": extracted_text}
