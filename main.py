@@ -2,6 +2,7 @@ from fastapi import FastAPI, File, UploadFile
 import shutil
 import os
 from scripts.ocr import process_uploaded_image
+from scripts.search import search_names_in_xlsx
 
 app = FastAPI()
 
@@ -18,5 +19,6 @@ async def upload_prescription(file: UploadFile = File(...)):
 
     # Process the image using OCR and extract text
     extracted_text = process_uploaded_image(file_path)
+    extracted_details = search_names_in_xlsx(extracted_text)
 
-    return {"message": "File processed successfully", "filename": file.filename, "extracted_text": extracted_text}
+    return {"message": "File processed successfully", "filename": file.filename, "extracted_text": extracted_text,"Details": extracted_details}
