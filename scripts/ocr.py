@@ -6,7 +6,7 @@ import io
 import re
 
 # Configure Gemini API
-API_KEY = "AIzaSyDRQJYsHRpRzTTMmGiCMBLE4FK1M9qibJg"
+API_KEY = "AIzaSyAAoh22e0DDMTLw1q3J8DxHEPCUcstAplQ"
 genai.configure(api_key=API_KEY)
 
 
@@ -41,11 +41,11 @@ def extract_text_from_image(image_path):
     response = model.generate_content(
         [
             {"mime_type": "image/png", "data": img_bytes},
-            "Extract only the words exactly as they appear in this image, without adding any extra text or explanations."
+            "Extract only the words exactly as they appear in this image. Return the words **inside double quotes** and separated by a space, like this: 'word1' 'word2' 'word3' Do **not** add any extra text, explanations, or formatting."
         ]
     )
 
-    return re.findall(r'\b\w+\b', response.text) if response else []
+    return re.findall(r"'(.*?)'", response.text) if response else []
 
 # Function to process uploaded image
 def process_uploaded_image(file_path):

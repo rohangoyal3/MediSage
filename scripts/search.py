@@ -27,3 +27,6 @@ def search_names_in_xlsx(names_list):
 
     return result
 
+names_list = ["Aceclomax-P Tablet"]
+output = search_names_in_xlsx(names_list)
+print(output)
