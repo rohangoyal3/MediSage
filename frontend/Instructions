@@ -1,0 +1,6 @@
+Extract the zip file in your system and open the folder in your vs-code.
+Now open terminal and write few npm commands to access the frontend.
+npm install --legacy-peer-deps
+npm install date-fns@3.0.0
+npm install
+npm run dev
